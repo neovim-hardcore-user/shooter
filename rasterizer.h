@@ -3,7 +3,11 @@
 #include <ESP32Lib.h>
 
 
-inline void draw_flat_triangle(vec4 v1, vec4 v2, vec4 v3, uint16_t c, short unsigned int** fb) {
+inline void draw_flat_triangle(vec4 fv1, vec4 fv2, vec4 fv3, uint16_t c, short unsigned int** fb) {
+  int_vec2 v1 = fv1.to_int();
+  int_vec2 v2 = fv2.to_int();
+  int_vec2 v3 = fv3.to_int();
+  
   if (v1.y > v2.y) std::swap(v1, v2);
   if (v1.y > v3.y) std::swap(v1, v3);
   if (v2.y > v3.y) std::swap(v2, v3);
@@ -29,7 +33,7 @@ inline void draw_flat_triangle(vec4 v1, vec4 v2, vec4 v3, uint16_t c, short unsi
 
     short unsigned int* fby = fb[y];
     for (int x = x_min; x < x_max; ++x) {
-      fby[x ^ 1] = c;
+      fby[x ^ 1] = c + fby[x ^ 1];
     }
 
     x_start += slope2;
@@ -45,7 +49,7 @@ inline void draw_flat_triangle(vec4 v1, vec4 v2, vec4 v3, uint16_t c, short unsi
     
     short unsigned int* fby = fb[y];
     for (int x = x_min; x < x_max; ++x) {
-      fby[x ^ 1] = c;
+      fby[x ^ 1] = c + fby[x ^ 1];
     }
 
     x_start += slope3;

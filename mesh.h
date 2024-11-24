@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 #include "matrix_vector.h"
 #include "rasterizer.h"
 
@@ -7,17 +7,17 @@ struct static_mesh {
   int triangle_count;
   int vertex_count;
 
-  vec4** transformed_vertices;
-  vec3** vertices;
+  vec4* transformed_vertices;
+  vec3* vertices;
 
-  short unsigned int*** triangles;
+  short unsigned int** triangles;
 
   short unsigned int color;
 
   void transform_vertices(f_matrix matrix) {
     for (int x = 0; x < vertex_count; ++x) {
-      auto tv = transformed_vertices[x];
-      *tv = matrix * *vertices[x];
+      auto tv = &transformed_vertices[x];
+      *tv = matrix * vertices[x];
 
       int64_t inv_w = (int64_t(1) << 32) / tv->w;
 
@@ -30,9 +30,9 @@ struct static_mesh {
   void render_triangles(short unsigned int** fb) {
     for (int x = 0; x < triangle_count; ++x) {
       draw_flat_triangle(
-        *transformed_vertices[*faces[x][0]], 
-        *transformed_vertices[*faces[x][1]], 
-        *transformed_vertices[*faces[x][2]], 
+        transformed_vertices[triangles[x][0]], 
+        transformed_vertices[triangles[x][1]], 
+        transformed_vertices[triangles[x][2]], 
         color, 
         fb
       );
@@ -47,4 +47,4 @@ struct static_mesh {
 };
 
 
-//struct mesh
+//struct mesh*/

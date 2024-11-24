@@ -62,15 +62,23 @@ model_file += "int vertex_count = " + str(len(vertices)) + ";\n\n"
 
 
 model_file += "vec4 transformed_vertices[" + str(len(vertices)) + "];\n\n"
-model_file += "vec3 vertices[" + str(len(vertices)) + """] = 
+model_file += "const vec3 vertices[" + str(len(vertices)) + """] = 
 {\n"""
 
 for vertex in vertices:
-    model_file += "{" + str(int(vertex[0] * FIXED_POINT)) + ", " + str(int(vertex[1] * FIXED_POINT)) + ", " + str(int(vertex[2] * FIXED_POINT)) + "},\n"
+    model_file += "{" + str(vertex[0]) + ", " + str(vertex[1]) + ", " + str(vertex[2]) + "},\n"
 
 model_file += "}; \n\n"
 
-model_file += "unsigned int faces[" + str(len(faces["player"])) + "][3][3] = {\n";
+
+model_file += "const uint16_t faces[" + str(len(faces["player"])) + "][3] = {\n";
+
+for face in faces["player"]:
+    model_file += "{" + str(face[0][0]) + ", " + str(face[1][0]) + ", " + str(face[2][0]) + "},\n" 
+
+model_file += "}; \n\n"
+
+"""model_file += "uint16_t faces[" + str(len(faces["player"])) + "][3][3] = {\n";
 
 for face in (faces["player"]):
     model_file += "{"
@@ -79,6 +87,7 @@ for face in (faces["player"]):
     model_file += "{" + str(face[2][0]) + ", " + str(face[2][1]) + ", " + str(face[2][2]) + "}"
     model_file += "}, \n"
 model_file += "}; \n\n"
+"""
 
 with open(input("name of the header: "), "w") as f:
     f.write(model_file)

@@ -30,7 +30,7 @@ void setup() {
   while (!Serial) {;}
 
   
-  c = (vga.RGB(255, 45, 0) & vga.RGBMask) | vga.SBits;
+  c = (vga.RGB(10, 0, 0) & vga.RGBMask) | vga.SBits;
 
   
 }
@@ -38,12 +38,19 @@ void setup() {
 float pitch = 0;
 float yaw = 0;
 
+float scale = 0;
+
+float scale_x = 0;
+float scale_y = 0;
+float scale_z = 0;
+float translate_x = 0;
+
 byte keys = 0;
 
 
 
 void loop() {
-  if (Serial.available() >= 9) {
+  /*if (Serial.available() >= 9) {
     byte buffer[9];
     Serial.readBytes(buffer, 9);
 
@@ -55,53 +62,72 @@ void loop() {
     keys = buffer[8];
 
 
-    yaw -= receivedInts[0] * 0.3f;
-    pitch += receivedInts[1] * 0.3f;
-  }
+    yaw -= receivedInts[0] * 0.003f;
+    pitch += receivedInts[1] * 0.003f;
+  }*/
 
 
   uint time = millis();
   frame_time = time - current_time;
   current_time = time;
 
+
+  yaw += frame_time * 0.003f;
+  //pitch = sin(time * 0.002f) * 0.6;
+
+  translate_x = sin(time * 0.0011f) * 0.6;
+
+  const float ms = 800.33f;
+
+
+  scale = sin(time * (1.0f/ms * PI * 2.0f)) * (sin(time * (1.0f/ms * PI)) * 0.5 + 0.5);
+
+  scale_x = scale * 0.1 + 1.0;
+  scale_y = scale * 0.3 + 1.0;
+  scale_z = scale * 0.1 + 1.0;
+
+  
+
   for (int y = 0; y < vga.yres; y++)
-    memset(vga.backBuffer[y], 0x0000, vga.xres * sizeof(uint16_t));
+    memset(vga.backBuffer[y], 0x0, vga.xres * sizeof(uint16_t));
 
 
   transform.setZero();
   
-  transform.setPerspective(120.0, 5.0, 10.0, 190);
+  transform.setPerspective(120.0, 5.0, 10.0, 200);
 
   
 
   
-  transform.multTranslate(0, 0, 3.1);
+  transform.multTranslate(translate_x, 0, 2.4);
 
   transform.multRotateX(pitch);
   transform.multRotateY(yaw);
 
+  transform.multScale(scale_x, scale_y, scale_z);
+
+  
+
+  
+  
 
   for (int x = 0; x < vertex_count; ++x) {
-    auto tv = &transformed_vertices[x];
+    vec4* tv = &transformed_vertices[x];
     *tv = transform * vertices[x];
 
-    int64_t inv_w = (int64_t(1) << 32) / tv->w;
+    float inv_w = 1 / tv->w;
 
-    tv->x = (tv->x * inv_w >> 32) + 100;
-    tv->y = (tv->y * inv_w >> 32) + 75;
+    tv->x = tv->x * inv_w + 100;
+    tv->y = tv->y * inv_w + 75;
     //tv->z = tv->z >> 16;
-  }
-
-  if (keys & 0b00000001) {
-    c = (vga.RGB(rand()%255, rand()%255, rand()%255) & vga.RGBMask) | vga.SBits;
   }
 
   for (int x = 0; x < triangle_count; ++x) {
     draw_flat_triangle(
-      transformed_vertices[*faces[x][0]], 
-      transformed_vertices[*faces[x][1]], 
-      transformed_vertices[*faces[x][2]], 
-      c, 
+      transformed_vertices[faces[x][0]], 
+      transformed_vertices[faces[x][1]], 
+      transformed_vertices[faces[x][2]], 
+      c,
       vga.backBuffer
     );
   }
@@ -109,7 +135,7 @@ void loop() {
 
 
 
-  delta_time = (float)(delta_time * 100 + frame_time) / 101;
+  delta_time = (float)(delta_time * 200 + frame_time) / 201;
   vga.setFont(Font6x8);
   vga.setCursor(0, 0);
   vga.print((int)(1000.0f / delta_time));
