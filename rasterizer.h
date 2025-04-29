@@ -15,25 +15,22 @@ inline void draw_flat_triangle(vec4 fv1, vec4 fv2, vec4 fv3, uint16_t c, short u
   int x_start = v1.x << 16;
   int x_end = x_start;
 
-  int d21 = v2.y - v1.y;
   int d31 = v3.y - v1.y;
-  int d32 = v3.y - v2.y;
+  if (d31 == 0) return;
 
-  int slope1 = (d31 != 0) ? ((v3.x - v1.x) << 16) / d31 : 0;
-  int slope2 = (d21 != 0) ? ((v2.x - v1.x) << 16) / d21 : 0;
-  int slope3 = (d32 != 0) ? ((v3.x - v2.x) << 16) / d32 : 0;
+  int slope1 = ((v3.x - v1.x) << 16) / d31;
+  int slope2 = ((v2.x - v1.x) << 16) / std::max(1, v2.y - v1.y);
+  int slope3 = ((v3.x - v2.x) << 16) / std::max(1, v3.y - v2.y);
 
-  int y = v1.y;
-  for (; y < v2.y; ++y) {
+
+  for (int y = v1.y; y < v2.y; ++y) {
     int x_min = x_start >> 16;
     int x_max = x_end >> 16;
 
     if (x_min > x_max) std::swap(x_min, x_max);
 
-
-    short unsigned int* fby = fb[y];
     for (int x = x_min; x < x_max; ++x) {
-      fby[x ^ 1] = c + fby[x ^ 1];
+      fb[y][x ^ 1] = c;// + fby[x ^ 1];
     }
 
     x_start += slope2;
@@ -41,15 +38,14 @@ inline void draw_flat_triangle(vec4 fv1, vec4 fv2, vec4 fv3, uint16_t c, short u
   }
 
   x_start = v2.x << 16;
-  for (; y < v3.y; ++y) {
+  for (int y = v2.y; y < v3.y; ++y) {
     int x_min = x_start >> 16;
     int x_max = x_end >> 16;
 
     if (x_min > x_max) std::swap(x_min, x_max);
     
-    short unsigned int* fby = fb[y];
     for (int x = x_min; x < x_max; ++x) {
-      fby[x ^ 1] = c + fby[x ^ 1];
+      fb[y][x ^ 1] = c;// + fby[x ^ 1];
     }
 
     x_start += slope3;

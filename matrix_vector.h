@@ -2,11 +2,11 @@
 
 
 struct vec2 {
-  float x, y;
+  float_t x, y;
 };
 
 struct vec3 {
-  float x, y, z;
+  float_t x, y, z;
 };
 
 struct int_vec2 {

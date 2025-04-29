@@ -14,11 +14,13 @@ static uint current_time = 0;
 static float delta_time = 0;
 
 
-
+f_matrix perspective;
 f_matrix transform;
 
 
-uint16_t c = 0;
+
+
+
 
 void setup() {
   vga.setFrameBufferCount(2);
@@ -29,10 +31,8 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) {;}
 
-  
-  c = (vga.RGB(10, 0, 0) & vga.RGBMask) | vga.SBits;
-
-  
+  perspective.setTranslate(100.0, 75.0, 0.0);
+  perspective.multPerspective(120.0, 5.0, 10.0, 200);
 }
 
 float pitch = 0;
@@ -67,15 +67,16 @@ void loop() {
   }*/
 
 
+
   uint time = millis();
   frame_time = time - current_time;
   current_time = time;
 
 
-  yaw += frame_time * 0.003f;
-  //pitch = sin(time * 0.002f) * 0.6;
+  yaw += frame_time * 0.0003f;
+  pitch = sin(time * 0.001f) * 1.3;
 
-  translate_x = sin(time * 0.0011f) * 0.6;
+  translate_x = sin(time * 0.0005f) * 0.4;
 
   const float ms = 800.33f;
 
@@ -92,17 +93,13 @@ void loop() {
     memset(vga.backBuffer[y], 0x0, vga.xres * sizeof(uint16_t));
 
 
-  transform.setZero();
-  
-  transform.setPerspective(120.0, 5.0, 10.0, 200);
+  memcpy(transform.m, perspective.m, 16 * sizeof(float));
 
   
+  transform.multTranslate(translate_x, 0, 2.1);
 
-  
-  transform.multTranslate(translate_x, 0, 2.4);
-
-  transform.multRotateX(pitch);
-  transform.multRotateY(yaw);
+  //transform.multRotateX(pitch);
+  transform.multRotateY(pitch);
 
   transform.multScale(scale_x, scale_y, scale_z);
 
@@ -115,11 +112,11 @@ void loop() {
     vec4* tv = &transformed_vertices[x];
     *tv = transform * vertices[x];
 
-    float inv_w = 1 / tv->w;
+    float inv_w = 1.0f / tv->w;
 
-    tv->x = tv->x * inv_w + 100;
-    tv->y = tv->y * inv_w + 75;
-    //tv->z = tv->z >> 16;
+    tv->x = tv->x * inv_w;
+    tv->y = tv->y * inv_w;
+    //tv->z = tv->z;
   }
 
   for (int x = 0; x < triangle_count; ++x) {
@@ -127,7 +124,7 @@ void loop() {
       transformed_vertices[faces[x][0]], 
       transformed_vertices[faces[x][1]], 
       transformed_vertices[faces[x][2]], 
-      c,
+      colors[x],
       vga.backBuffer
     );
   }

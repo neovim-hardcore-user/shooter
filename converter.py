@@ -49,6 +49,9 @@ def load_image(file_path):
 
     return pixels, width, height
 
+def RGB(r, g, b):
+     return ((((int(r) >> 3) & 0b11111) | ((int(g) << 2) & 0b1111100000) | ((int(b) << 6) & 0b11110000000000) | ((255 << 8) & 0xc000)) & 0x3fff)
+
 
 vertices, normals, uvs, faces = load_obj(input("model to convert: "));
 
@@ -62,21 +65,56 @@ model_file += "int vertex_count = " + str(len(vertices)) + ";\n\n"
 
 
 model_file += "vec4 transformed_vertices[" + str(len(vertices)) + "];\n\n"
-model_file += "const vec3 vertices[" + str(len(vertices)) + """] = 
-{\n"""
+model_file += "const vec3 vertices[" + str(len(vertices)) + "] = {\n"
 
+i = 1
 for vertex in vertices:
-    model_file += "{" + str(vertex[0]) + ", " + str(vertex[1]) + ", " + str(vertex[2]) + "},\n"
+    model_file += "{" + str(vertex[0]) + ", " + str(vertex[1]) + ", " + str(vertex[2]) + "}, "
+    
+    if i == 3:
+        model_file += "\n"
+        i = 0
+    i += 1
 
 model_file += "}; \n\n"
 
+model_file += "const short colors[" + str(len(faces["player"])) + "] = {\n"
+
+b = 1
+for i in range(len(faces["player"])):
+    normal = normals[faces["player"][i][0][2]]
+    model_file += str(RGB((-normal[0] * 0.5 + 0.5) * 255, (-normal[1] * 0.5 + 0.5) * 255, (-normal[2] * 0.5 + 0.5) * 255)) + ", "
+    
+    if b == 10:
+        model_file += "\n"
+        b = 0
+    b += 1
+
+model_file += "}; \n\n"
+
+"""model_file += "const uint16_t face_colors[" + str(len(faces["player"])) + "] = {\n";
+
+for face in faces["player"]:
+    model_file += str(face[0][2]) + ",\n" 
+    
+model_file += "}; \n\n"
+"""
 
 model_file += "const uint16_t faces[" + str(len(faces["player"])) + "][3] = {\n";
 
+i = 1
 for face in faces["player"]:
-    model_file += "{" + str(face[0][0]) + ", " + str(face[1][0]) + ", " + str(face[2][0]) + "},\n" 
+    model_file += "{" + str(face[0][0]) + ", " + str(face[1][0]) + ", " + str(face[2][0]) + "}, " 
+
+    if i == 5:
+        model_file += "\n"
+        i = 0
+    i += 1
 
 model_file += "}; \n\n"
+
+
+
 
 """model_file += "uint16_t faces[" + str(len(faces["player"])) + "][3][3] = {\n";
 
